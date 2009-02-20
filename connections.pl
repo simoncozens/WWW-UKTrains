@@ -9,13 +9,14 @@ use WWW::Mechanize;
 use strict;
 use URI;
 
-my ($dep, $dst) = (@ARGV);
+my ($dep, $dst, $time) = (@ARGV);
 my $g = new Graph::Directed;
 
 my $j = scraper { process "ul>li", "journeys[]" => 
  scraper { process "a", description => 'TEXT', url => '@href' }
  };
 my $connections = scraper { process "ul>li", "connections[]" => "TEXT" };
+# XXX No note of $time here
 my $stuff = $j->scrape(URI->new("http://m.traintimes.org.uk/$dep/$dst"))->{journeys};
 pop @$stuff;
 pop @$stuff;
@@ -94,15 +95,24 @@ for (my $i=1 ; $i<@$best ; $i++) {
 sub ticket_costs {
     my $route = shift;
     my @costs;
+    my $connection;
+    if ($time) { # XXX This is a hack
+        eval { $connection = Time::Piece->strptime($time, "%F %H:%M"); };
+        if ($@) { die "Bad time format" }
+    }
     for (0..$#{$route}-1) {
         my ($dep, $dst) = ($route->[$_], $route->[$_+1]);
         push @costs,
         ($cache{"$dep;$dst"} ||= do {
-            my @journeys = WWW::UKTrains::NationalRail::journeys(
-                dep => $dep,
-                dst => $dst
-            );
-            min map { $_->cheapest }@journeys;
+            my @journeys = 
+                sort { $a->cheapest cmp $b->cheapest }
+                WWW::UKTrains::NationalRail::journeys(
+                    dep => $dep,
+                    dst => $dst,
+                    defined $connection ? (time => $connection) : ()
+                );
+            $connection = $journeys[0]->end_time;
+            $journeys[0]->cheapest;
         })
     }
     return @costs;
