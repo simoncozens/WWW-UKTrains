@@ -21,7 +21,7 @@ pop @$stuff;
 pop @$stuff;
 use Data::Dumper;
 my %change;
-for (@$stuff) { 
+for (@$stuff) {
     my $url; next unless $url = $_->{url};
     next if $_->{description} =~ /direct/;
     my $x = $connections->scrape($url);
@@ -64,11 +64,23 @@ print "Computing paths...\n";
 connect_downwards($dep);
 follow_path($dep, $dst, []);
 print "Done\n";
+# First let's do it the boring way:
+my $basic = sum ticket_costs([$dep, $dst]);
+printf "Normal ticket: $dep->$dst: %0.2f\n", $basic;
+# Now try the other ideas.
+my $best = [$dep, $dst];
 for (@all_paths) { 
+    next if @$_ == 2;
     my @costs = ticket_costs($_);
+    my $sum = sum(@costs);
+    if ($sum < $basic) {
+        $best = $_;
+        print " * ";
+    }
     print " @$_: ";
     print join " + ", @costs;
-    print " = ", sum(@costs);
+    printf " = %0.2f", $sum;
+    if ($sum < $basic) { printf " (%2d%% saving!)", 100*($basic-$sum)/$basic }
     print "\n";
 }
 
