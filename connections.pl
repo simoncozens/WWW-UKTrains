@@ -69,11 +69,13 @@ my $basic = sum ticket_costs([$dep, $dst]);
 printf "Normal ticket: $dep->$dst: %0.2f\n", $basic;
 # Now try the other ideas.
 my $best = [$dep, $dst];
+my $bestCost = $basic;
 for (@all_paths) { 
     next if @$_ == 2;
     my @costs = ticket_costs($_);
     my $sum = sum(@costs);
-    if ($sum < $basic) {
+    if ($sum < $bestCost) {
+        $bestCost = $sum;
         $best = $_;
         print " * ";
     }
@@ -84,6 +86,10 @@ for (@all_paths) {
     print "\n";
 }
 
+print "Best = @$best\n";
+for (my $i=1 ; $i<@$best ; $i++) {
+  print "http://traintimes.org.uk/",$$best[$i-1],"/",$$best[$i],"/fares\n";
+}
 
 sub ticket_costs {
     my $route = shift;
