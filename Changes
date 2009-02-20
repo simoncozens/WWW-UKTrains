@@ -1,0 +1,6 @@
+Revision history for Perl extension WWW::UKTrains.
+
+0.01  Fri Feb 13 09:00:41 2009
+	- original version; created by h2xs 1.23 with options
+		-AX -n WWW::UKTrains
+
