@@ -135,7 +135,7 @@ sub journeys {
         $journeys[$_]{date} = $stuff{time}->ymd; # XXX Not true at extremities
         bless ($journeys[$_], "WWW::UKTrains::Journey")
     }
-    return @journeys;
+    return grep {$_->{_start_time}} @journeys;
 }
 
 1;

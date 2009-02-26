@@ -16,8 +16,13 @@ my $j = scraper { process "ul>li", "journeys[]" =>
  scraper { process "a", description => 'TEXT', url => '@href' }
  };
 my $connections = scraper { process "ul>li", "connections[]" => "TEXT" };
-# XXX No note of $time here
-my $stuff = $j->scrape(URI->new("http://m.traintimes.org.uk/$dep/$dst"))->{journeys};
+my $stuff;
+if ($time) {
+    my $t = Time::Piece->strptime($time, "%F %H:%M");
+    $stuff = $j->scrape(URI->new("http://m.traintimes.org.uk/$dep/$dst/".$t->strftime("%H:%M/%Y-%m-%d")))->{journeys};
+} else {
+    $stuff = $j->scrape(URI->new("http://m.traintimes.org.uk/$dep/$dst/"))->{journeys};
+}
 pop @$stuff;
 pop @$stuff;
 use Data::Dumper;
